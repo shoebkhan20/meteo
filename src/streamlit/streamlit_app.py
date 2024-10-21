@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import joblib
 import random
+import requests
+
+api_key='b7ef3ccb86e5c46d8f284ee5944c5cc5'
 
 dfDate=pd.read_csv('data/processed/weatherAUS_processed_data_with_date.csv')
 dfDate = dfDate.drop('Unnamed: 0',axis=1)
@@ -61,8 +64,30 @@ if page == pages[1]:
 
     option = st.selectbox(
     "Choisissez une localité en Australie",
-    ('Albury','BadgerysCreek','Cobar','CoffsHarbour','Moree','Newcastle','NorahHead','NorfolkIsland','Penrith','Richmond','Sydney','SydneyAirport','WaggaWagga','Williamtown','Wollongong','Canberra','Tuggeranong','MountGinini','Ballarat','Bendigo','Sale','MelbourneAirport','Melbourne','Mildura','Nhil','Portland','Watsonia','Dartmoor','Brisbane','Cairns','GoldCoast','Townsville','Adelaide','MountGambier','Nuriootpa','Woomera','Albany','Witchcliffe','PearceRAAF','PerthAirport','Perth','SalmonGums','Walpole','Hobart','Launceston','AliceSprings','Darwin','Katherine','Uluru'),)
+    ('Albury','Badgerys Creek','Cobar','Coffs Harbour','Moree','Newcastle','Nora hHead','Norfolk Island','Penrith','Richmond','Sydney','Sydney Airport','Wagga Wagga','Williamtown','Wollongong','Canberra','Tuggeranong','Mount Ginini','Ballarat','Bendigo','Sale','Melbourne Airport','Melbourne','Mildura','Nhill','Portland','Watsonia','Dartmoor','Brisbane','Cairns','Gold Coast','Townsville','Adelaide','Mount Gambier','Nuriootpa','Woomera','Albany','Witchcliffe','Perth Airport','Perth','Salmon Gums','Walpole','Hobart','Launceston','Alice Springs','Darwin','Katherine','Mutitjulu'),)
 
+    requeteAuth="http://api.openweathermap.org/data/2.5/forecast?id=524901&appid={}"
+    response=requests.get(requeteAuth.format(api_key))
+    if response.status_code!=200:
+        st.write(response.status_code)
+    else:
+        requeteGeoCoding="http://api.openweathermap.org/geo/1.0/direct?q={},AU&limit=5&appid={}"
+        response=requests.get(requeteGeoCoding.format(option,api_key))
+        if response.status_code!=200:
+            st.write(response.status_code)
+        else:
+            lat=response.json()[0]['lat']
+            lon=response.json()[0]['lon']
+            st.write("Lattitude : ",lat)
+            st.write("Longitude : ",lon)
+
+            requeteGetWeather="https://api.openweathermap.org/data/2.5/weather?lat={}&lon={}&units=metric&appid={}"
+            response=requests.get(requeteGetWeather.format(lat,lon,api_key))
+            print(requeteGetWeather.format(lat,lon,api_key))
+            if response.status_code!=200:
+                st.write(response.status_code)
+            else:
+                st.write(response.json())
 
 
 
