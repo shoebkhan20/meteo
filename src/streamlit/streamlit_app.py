@@ -16,6 +16,7 @@ st.title("Prédictions météo - by SKH")
 st.write("Exercices de prédiction")
 
 modelRadio=st.radio('Sélectionner votre model',['RandomForestDecisionTreeClassifier','KNeighborsClassifier','SVC','XGBClassifier'])
+listeModels=['RandomForestDecisionTreeClassifier','KNeighborsClassifier','SVC','XGBClassifier']
 
 def displayWeatherImage(meteo):
     if (meteo == 0):
@@ -28,13 +29,15 @@ def predict(modelName):
     model=joblib.load(modelPath)
     aleatoire=random.randint(0,df.shape[0])
     pred=model.predict([df.loc[aleatoire]])
-    st.write("Météo le",dfDate.loc[aleatoire]["Date"]," à",dfLocation.loc[aleatoire],":")
-    #st.write(df['RainToday'].loc[df.index == aleatoire].values[0])
-    displayWeatherImage(round(df['RainToday'].loc[df.index == aleatoire].values[0]))
-    st.write("Prédiction pour le lendemain :")
-    displayWeatherImage(round(pred[0]))
-    st.write("Réalité le lendemain :")
-    displayWeatherImage(round(dfRaintomorrow.loc[aleatoire]))
+    col1, col2 = st.columns(2)
+    with col1:
+         st.write("Météo le",dfDate.loc[aleatoire]["Date"]," à",dfLocation.loc[aleatoire],":")
+         st.write("Prédiction pour le lendemain :")
+         st.write("Réalité le lendemain :")
+    with col2:
+         displayWeatherImage(round(df['RainToday'].loc[df.index == aleatoire].values[0]))
+         displayWeatherImage(round(pred[0]))
+         displayWeatherImage(round(dfRaintomorrow.loc[aleatoire]))
 
     
 
