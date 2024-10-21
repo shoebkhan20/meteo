@@ -41,6 +41,7 @@ df['WindDir3pm'] = df['WindDir3pm'].replace({'E':0, 'ENE':(0.125*np.pi),'NE':(0.
 
 # Afin d'éviter la création de 49 colonnes avec l'encodage One-Hot (pd.get_dummies), on utilisera l'encodage d'étiquettes (label Encoding)
 label_encoder = LabelEncoder()
+dfLocation=df['Location'].copy()
 df['Location']= label_encoder.fit_transform(df['Location'])
 
 # Transformation des variables qualitatives  'RainToday' et 'RainTomorrow' en variables qualitatives
@@ -156,6 +157,7 @@ imputer = KNNImputer(n_neighbors=1)
 df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
 
 df['Date']=dfDate
+df['LocationReel']=dfLocation
 
 #Export du dataframe 
 df.to_csv('data/processed/weatherAUS_processed_data_with_date.csv')

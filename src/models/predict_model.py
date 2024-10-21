@@ -8,6 +8,8 @@ dfDate=pd.read_csv('data/processed/weatherAUS_processed_data_with_date.csv')
 dfDate = dfDate.drop('Unnamed: 0',axis=1)
 dfRaintomorrow=dfDate['RainTomorrow']
 dfDate=dfDate.drop('RainTomorrow',axis=1)
+dfLocation=dfDate.drop('LocationReel',axis=1)
+dfDate=dfDate.drop('LocationReel',axis=1)
 df = dfDate.drop('Date',axis=1)
 
 #clf_rf=joblib.load("models/clf_rf")
