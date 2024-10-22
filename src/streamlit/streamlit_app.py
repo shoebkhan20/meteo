@@ -3,6 +3,8 @@ import pandas as pd
 import joblib
 import random
 import requests
+from io import StringIO
+import datetime
 
 api_key='b7ef3ccb86e5c46d8f284ee5944c5cc5'
 
@@ -64,30 +66,56 @@ if page == pages[1]:
 
     option = st.selectbox(
     "Choisissez une localité en Australie",
-    ('Albury','Badgerys Creek','Cobar','Coffs Harbour','Moree','Newcastle','Nora hHead','Norfolk Island','Penrith','Richmond','Sydney','Sydney Airport','Wagga Wagga','Williamtown','Wollongong','Canberra','Tuggeranong','Mount Ginini','Ballarat','Bendigo','Sale','Melbourne Airport','Melbourne','Mildura','Nhill','Portland','Watsonia','Dartmoor','Brisbane','Cairns','Gold Coast','Townsville','Adelaide','Mount Gambier','Nuriootpa','Woomera','Albany','Witchcliffe','Perth Airport','Perth','Salmon Gums','Walpole','Hobart','Launceston','Alice Springs','Darwin','Katherine','Mutitjulu'),)
+    ('Albury','Badgerys Creek','Cobar','Coffs Harbour','Moree','Newcastle','Norah Head','Norfolk Island','Penrith','Richmond','Sydney','Sydney Airport','Wagga Wagga','Williamtown','Wollongong','Canberra','Tuggeranong','Mount Ginini','Ballarat','Bendigo','Sale','Melbourne Airport','Melbourne','Mildura','Nhill','Portland','Watsonia','Dartmoor','Brisbane','Cairns','Gold Coast','Townsville','Adelaide','Mount Gambier','Nuriootpa','Woomera','Albany','Witchcliffe','Perth Airport','Perth','Salmon Gums','Walpole','Hobart','Launceston','Alice Springs','Darwin','Katherine','Uluru'),)
 
-    requeteAuth="http://api.openweathermap.org/data/2.5/forecast?id=524901&appid={}"
-    response=requests.get(requeteAuth.format(api_key))
+    locationDict={'Adelaide':'5081','Albany':'6001','Albury':'2002','Alice Springs':'8002','Badgerys Creek':'2005','Ballarat':'3005','Bendigo':'3008','Brisbane':'4019','Cairns':'4024','Canberra':'2801','Cobar':'2029','Coffs Harbour':'2030','Dartmoor':'3101','Darwin':'8014','Gold Coast':'4050','Hobart':'7021','Katherine':'8024','Launceston':'7025','Melbourne Airport':'3049','Melbourne':'3033','Mildura':'3051','Moree':'2084','Mount Gambier':'5041','Mount Ginini':'2804','Yulara':'8056','Newcastle':'2098','Nhill':'3059','Norah Head':'2099','Norfolk Island':'2100','Nuriootpa':'5049','Penrith':'2111','Perth Airport':'6110','Perth':'6111','Portland':'3068','Richmond':'4101','Sale':'3022','Salmon Gums':'6119','Sydney Airport':'2125','Sydney':'2124','Townsville':'4128','Tuggeranong':'2802','Wagga Wagga':'2139','Walpole':'6138','Watsonia':'3079','Williamtown':'2145','Witchcliffe':'6071','Wollongong':'2146','Woomera':'5072'}
+
+    current_time=datetime.datetime.now()
+    yearMonth=str(current_time.year)+str(current_time.month)
+
+    url='http://www.bom.gov.au/climate/dwo/{}/text/IDCJDW{}.{}.csv'.format(yearMonth,locationDict[option],yearMonth)
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'}    
+    
+    response = requests.get(url, headers=headers)
+
     if response.status_code!=200:
         st.write(response.status_code)
     else:
-        requeteGeoCoding="http://api.openweathermap.org/geo/1.0/direct?q={},AU&limit=5&appid={}"
-        response=requests.get(requeteGeoCoding.format(option,api_key))
-        if response.status_code!=200:
-            st.write(response.status_code)
-        else:
-            lat=response.json()[0]['lat']
-            lon=response.json()[0]['lon']
-            st.write("Lattitude : ",lat)
-            st.write("Longitude : ",lon)
+        
+        st.write("Données récupérées du site : ",url)
 
-            requeteGetWeather="https://api.openweathermap.org/data/2.5/weather?lat={}&lon={}&units=metric&appid={}"
-            response=requests.get(requeteGetWeather.format(lat,lon,api_key))
-            print(requeteGetWeather.format(lat,lon,api_key))
-            if response.status_code!=200:
-                st.write(response.status_code)
-            else:
-                st.write(response.json())
+        currentWeather=response.text
+
+        tableInString=currentWeather[currentWeather.index("Date")-1:]
+
+        table=pd.read_csv(StringIO(tableInString))
+
+        st.write(table)
+
+
+#    requeteAuth="http://api.openweathermap.org/data/2.5/forecast?id=524901&appid={}"
+#    response=requests.get(requeteAuth.format(api_key))
+#    if response.status_code!=200:
+#        st.write(response.status_code)
+#    else:
+#        requeteGeoCoding="http://api.openweathermap.org/geo/1.0/direct?q={},AU&limit=5&appid={}"
+#        response=requests.get(requeteGeoCoding.format(option,api_key))
+#        if response.status_code!=200:
+#            st.write(response.status_code)
+#        else:
+#            lat=response.json()[0]['lat']
+#            lon=response.json()[0]['lon']
+#            st.write("Lattitude : ",lat)
+#            st.write("Longitude : ",lon)
+
+#            requeteGetWeather="https://api.openweathermap.org/data/2.5/weather?lat={}&lon={}&units=metric&appid={}"
+#            requeteGetWeather="https://api.open-meteo.com/v1/forecast?latitude={}&longitude={}&hourly=temperature_2m&models=bom_access_global"
+#            response=requests.get(requeteGetWeather.format(lat,lon,api_key))
+#            print(requeteGetWeather.format(lat,lon,api_key))
+#            if response.status_code!=200:
+#                st.write(response.status_code)
+#            else:
+#                st.write(response.json())
 
 
 
