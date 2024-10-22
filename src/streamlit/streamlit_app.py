@@ -54,10 +54,10 @@ if page == pages[0]:
             st.write("##### Météo le",dfDate.loc[aleatoire]["Date"]," à",dfLocation.loc[aleatoire]," #####")
             st.write("**Prédictions**")
             for (title,p) in zip(listeModelTitles,listPredictions):
-                iconResult=""
+                iconResult="*"
                 if (round(p[0]) == round(dfRaintomorrow.loc[aleatoire])):
                     iconResult=":white_check_mark:"
-                st.write("*",title,iconResult)
+                st.write(iconResult,title)
             st.write(" ")
             st.write("##### Réalité le lendemain #####")
         with col2:
@@ -101,12 +101,21 @@ if page == pages[1]:
         table=pd.read_csv(StringIO(tableInString))
 
         st.write(table)
+        
 
         col1, col2 = st.columns(2)
         with col1:
             st.write("**Aujourd'hui à",option,", voici la météo :**")
         with col2:
             displayWeatherImage(round(table['Rainfall (mm)'].iloc[-1]))
+
+        
+        table=table.drop(columns=['Date','Minimum temperature (°C)','Time of maximum wind gust'])
+
+        lastRow=table.iloc[-1]
+        
+        st.write(lastRow)
+
         st.write("Demain, en fonction de nos modèles de prédiction, il fera :")
 
 
