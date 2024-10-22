@@ -5,6 +5,7 @@ import random
 import requests
 from io import StringIO
 import datetime
+import itertools
 
 api_key='b7ef3ccb86e5c46d8f284ee5944c5cc5'
 
@@ -16,6 +17,24 @@ dfLocation=dfDate['LocationReel']
 dfDate=dfDate.drop('LocationReel',axis=1)
 df = dfDate.drop('Date',axis=1)
 
+def displayWeatherImage(meteo):
+    if (meteo == 0):
+        st.image("data/images/sun.png",width=30)
+    else:
+        st.image("data/images/rain.png",width=30)
+
+def predict(listeModels,aleatoire):
+    list_to_return=[]
+    for modelName in listeModels:
+        modelPath="models/"+modelName
+        model=joblib.load(modelPath)
+        pred=model.predict([df.loc[aleatoire]])
+        list_to_return.append(pred)
+    return list_to_return
+
+listeModels=['clf_dt','clf_knn','clf_svm','clf_xgb','clf_lr']
+listeModelTitles=['RandomForestDecisionTreeClassifier','KNeighborsClassifier','SVC','XGBClassifier','LogisticRegression']
+
 st.title("Prédictions météo - by SKH")
 
 pages=['Exercices de prédiction aléatoire','Météo de demain ?']
@@ -25,39 +44,28 @@ if page == pages[0]:
 
     st.write("Exercices de prédiction aléatoire")
 
-    listeModels=['clf_dt','clf_knn','clf_svm','clf_xgb']
-    listeModelTitles=['RandomForestDecisionTreeClassifier','KNeighborsClassifier','SVC','XGBClassifier']
-
-    def displayWeatherImage(meteo):
-        if (meteo == 0):
-            st.image("data/images/sun.png",width=30)
-        else:
-            st.image("data/images/rain.png",width=30)
-
-    def predict(listeModels,aleatoire):
-        list_to_return=[]
-        for modelName in listeModels:
-            modelPath="models/"+modelName
-            model=joblib.load(modelPath)
-            pred=model.predict([df.loc[aleatoire]])
-            list_to_return.append(pred)
-        return list_to_return
-
-
-
     if st.button("Lancer un test de prédiction de météo aléatoire"):
         aleatoire=random.randint(0,df.shape[0])
         col1, col2 = st.columns(2)
         listPredictions=predict(listeModels,aleatoire)
+        #st.write(dfDate.loc[aleatoire])
+        #st.write(dfDate.loc[aleatoire+1])
         with col1:
             st.write("##### Météo le",dfDate.loc[aleatoire]["Date"]," à",dfLocation.loc[aleatoire]," #####")
-            for title in listeModelTitles:
-                st.write("Prédiction pour ",title)
+            st.write("**Prédictions**")
+            for (title,p) in zip(listeModelTitles,listPredictions):
+                iconResult=""
+                if (round(p[0]) == round(dfRaintomorrow.loc[aleatoire])):
+                    iconResult=":white_check_mark:"
+                st.write("*",title,iconResult)
+            st.write(" ")
             st.write("##### Réalité le lendemain #####")
         with col2:
             displayWeatherImage(round(df['RainToday'].loc[df.index == aleatoire].values[0]))
+            st.write(" ")
             for p in listPredictions:
                 displayWeatherImage(round(p[0]))
+            st.write(" ")
             displayWeatherImage(round(dfRaintomorrow.loc[aleatoire]))
 
 if page == pages[1]:
@@ -73,7 +81,9 @@ if page == pages[1]:
     current_time=datetime.datetime.now()
     yearMonth=str(current_time.year)+str(current_time.month)
 
+    #Exemple d'URL : http://www.bom.gov.au/climate/dwo/202410/text/IDCJDW2084.202410.csv
     url='http://www.bom.gov.au/climate/dwo/{}/text/IDCJDW{}.{}.csv'.format(yearMonth,locationDict[option],yearMonth)
+    #Headers pour tricher, comme si on était un visiteur humain, sinon le site refuse l'accès depuis les scripts
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'}    
     
     response = requests.get(url, headers=headers)
@@ -91,6 +101,13 @@ if page == pages[1]:
         table=pd.read_csv(StringIO(tableInString))
 
         st.write(table)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write("**Aujourd'hui à",option,", voici la météo :**")
+        with col2:
+            displayWeatherImage(round(table['Rainfall (mm)'].iloc[-1]))
+        st.write("Demain, en fonction de nos modèles de prédiction, il fera :")
 
 
 #    requeteAuth="http://api.openweathermap.org/data/2.5/forecast?id=524901&appid={}"
